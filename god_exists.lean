@@ -1,8 +1,9 @@
 /-
-该代码使用了修改后的Lean编译器，因此无法在普通的Lean中编译。修改如下：
-在文件`src/Lean/Meta/SynthInstance.lean`中,代码行`let type ← preprocess type`与行
-`let cacheKey := { localInsts, type, synthPendingDepth := (← read).synthPendingDepth }`
-之间，增加了如下代码片段：
+This code uses a modified version of Lean compiler, so it can't be compiled using official Lean 4 releases.
+The modification is following:
+In file `src/Lean/Meta/SynthInstance.lean`, between code line `let type ← preprocess type` and line
+`let cacheKey := { localInsts, type, synthPendingDepth := (← read).synthPendingDepth }`,
+we added the following code snippet:
 ```lean
     let resultFromParam ← forallTelescopeReducing type fun xs type => do
       let paramTypes ← xs.mapM inferType
@@ -15,7 +16,7 @@
       trace[Meta.synthInstance] "result already in the parameters of type {type}, result is {result}"
       return some result
 ```
-注意缩进为4个空格，也就是需要与`let type ← preprocess type`那一行对齐。
+Note that the indent is 4 spaces, to be aligned with the former line `let type ← preprocess type`.
 -/
 import Lean
 import Mathlib.Tactic
@@ -53,14 +54,8 @@ notation t "@." w => atWorld w t
 
 def Necessary (p : &Prop) := ∀ w', Accessible w w' → p@.w'
 def Possible (p : &Prop) := ∃ w', Accessible w w' ∧ p@.w'
-notation "□" p:50 => Necessary (fun [World] => p)
-notation "◇" p:50 => Possible (fun [World] => p)
-@[app_unexpander Necessary] def unexpanderNecessary : Unexpander
-  | `($_ $x) => `(□ $x)
-  | _ => throw ()
-@[app_unexpander Possible] def unexpanderPossible : Unexpander
-  | `($_ $x) => `(◇ $x)
-  | _ => throw ()
+notation "□" p:50 => Necessary p
+notation "◇" p:50 => Possible p
 
 axiom Object : &Type
 def Property := &(Object → Prop)
